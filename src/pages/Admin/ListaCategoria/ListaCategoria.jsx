@@ -9,6 +9,8 @@ import "react-toastify/dist/ReactToastify.css";
 import MenuLateral from "../../../components/Admin/MenuLateral/MenuLateral";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
+import { jsPDF } from "jspdf";
+
 
 function ListaCategoria() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -115,8 +117,43 @@ function ListaCategoria() {
     const data = new Blob([excelBuffer], {
       type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     });
-    saveAs(data, "productos.xlsx");
+    saveAs(data, "categorias.xlsx");
   };
+
+const generarPDF = () => {
+  const doc = new jsPDF();
+  let yPos = 20;
+  let page = 1;
+  const lineHeight = 10;
+
+  categorias.forEach((categorias, index) => {
+    const { id, nombre } = categorias;
+
+    const data = [`ID: ${id}`, `Nombre: ${nombre}`];
+
+    const maxLineLength = data.reduce(
+      (max, line) => Math.max(max, doc.getStringUnitWidth(line)),
+      0
+    );
+
+    if (yPos + lineHeight * data.length > 280) {
+      doc.addPage();
+      yPos = 20;
+      page++;
+      doc.text("Tabla de categorias (página " + page + ")", 95, 10);
+    }
+
+    data.forEach((line, i) => {
+      const lineYPos = yPos + lineHeight * i;
+      doc.text(line, 10, lineYPos);
+    });
+
+    yPos += lineHeight * (data.length + 1);
+  });
+
+  doc.save("categorias.pdf");
+};
+
 
   return (
     <>
@@ -156,6 +193,11 @@ function ListaCategoria() {
               <th scope="col">
                 <button className="export" onClick={exportToExcel}>
                   Exportar a Excel{" "}
+                </button>
+              </th>
+              <th scope="col">
+                <button className="export" onClick={generarPDF}>
+                  Exportar a PDF
                 </button>
               </th>
             </tr>

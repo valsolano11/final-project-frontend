@@ -64,8 +64,6 @@ function ListaUsuarios() {
     loadUsers();
   }, []);
 
-
-
   const handleSearchInputChange = (event) => {
     setSearchQuery(event.target.value);
   };
@@ -100,25 +98,24 @@ function ListaUsuarios() {
     });
   };
 
-const handleSaveEdit = async () => {
-  try {
-    await Users.updateUser(
-      editedUser.id,
-      editedUser,
-      localStorage.getItem("token")
-    );
-    setEditMode(false);
-    const updatedUsers = usuarios.map((user) =>
-      user.id === editedUser.id ? editedUser : user
-    );
-    setUsuarios(updatedUsers);
-    toast.success("Cambios guardados correctamente");
-  } catch (error) {
-    console.error("Error al guardar la edición del usuario:", error);
-    toast.error("Error al guardar los cambios");
-  }
-};
-
+  const handleSaveEdit = async () => {
+    try {
+      await Users.updateUser(
+        editedUser.id,
+        editedUser,
+        localStorage.getItem("token")
+      );
+      setEditMode(false);
+      const updatedUsers = usuarios.map((user) =>
+        user.id === editedUser.id ? editedUser : user
+      );
+      setUsuarios(updatedUsers);
+      toast.success("Cambios guardados correctamente");
+    } catch (error) {
+      console.error("Error al guardar la edición del usuario:", error);
+      toast.error("Error al guardar los cambios");
+    }
+  };
 
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
@@ -150,28 +147,78 @@ const handleSaveEdit = async () => {
     return format(new Date(dateString), "dd/MM/yyyy");
   };
 
- const exportToExcel = () => {
-   const usuariosFiltrados = usuarios.map(
-     ({ nombre, apellido, direccion, celular }) => ({
+  const exportToExcel = () => {
+    const usuariosFiltrados = usuarios.map(
+      ({ nombre, apellido,RolId, direccion, celular }) => ({
+        nombre,
+        apellido,
+        direccion,
+        RolId,
+        celular,
+      })
+    );
+    const worksheet = XLSX.utils.json_to_sheet(usuariosFiltrados);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Usuarios");
+    const excelBuffer = XLSX.write(workbook, {
+      bookType: "xlsx",
+      type: "array",
+    });
+    const data = new Blob([excelBuffer], {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    });
+    saveAs(data, "usuarios.xlsx");
+  };
+
+  //la constante para pdf
+  const generarPDF = () => {
+    const doc = new jsPDF();
+    let yPos = 20;
+    let page = 1;
+    const lineHeight = 10;
+
+    usuarios.forEach((usuario, index) => {
+     const {
+       id,
        nombre,
        apellido,
        direccion,
        celular,
-     })
-   );
-   const worksheet = XLSX.utils.json_to_sheet(usuariosFiltrados);
-   const workbook = XLSX.utils.book_new();
-   XLSX.utils.book_append_sheet(workbook, worksheet, "Usuarios");
-   const excelBuffer = XLSX.write(workbook, {
-     bookType: "xlsx",
-     type: "array",
-   });
-   const data = new Blob([excelBuffer], {
-     type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-   });
-   saveAs(data, "usuarios.xlsx");
- };
+       RolId,
+     } = usuario;
 
+
+      const data = [
+        `ID: ${id}`,
+        `Nombre: ${nombre}`,
+        `Apellido: ${apellido}`,
+        `Dirección: ${direccion}`,
+        `Celular: ${celular}`,
+        `Rol: ${getRolName(RolId)}`,
+      ];
+
+      const maxLineLength = data.reduce(
+        (max, line) => Math.max(max, doc.getStringUnitWidth(line)),
+        0
+      );
+
+      if (yPos + lineHeight * data.length > 280) {
+        doc.addPage();
+        yPos = 20;
+        page++;
+        doc.text("Tabla de usuarios (página " + page + ")", 95, 10);
+      }
+
+      data.forEach((line, i) => {
+        const lineYPos = yPos + lineHeight * i;
+        doc.text(line, 10, lineYPos);
+      });
+
+      yPos += lineHeight * (data.length + 1);
+    });
+
+    doc.save("usuarios.pdf");
+  };
 
   return (
     <>
@@ -229,10 +276,15 @@ const handleSaveEdit = async () => {
                 Rol
               </th>
               <th scope="col">
-             
                 <button className="export" onClick={exportToExcel}>
-                  Exportar a Excel{" "}
+                  Exportar a Excel
+                 
                 </button>
+              </th>
+              <th scope="col">
+                 <button className="export" onClick={generarPDF}>
+                    Exportar a PDF
+                  </button>
               </th>
             </tr>
           </thead>
@@ -249,7 +301,6 @@ const handleSaveEdit = async () => {
                 <td>{getRolName(usuario.RolId)}</td>
                 <td>
                   <div className="buttons-users">
-                  
                     {!editMode && (
                       <>
                         <button
@@ -330,7 +381,7 @@ const handleSaveEdit = async () => {
                     }
                   />
                 </div>
-                
+
                 <div className="user-group col">
                   <label className="form-label-usuario">
                     <span className="form-label-text">Celular</span>
@@ -347,7 +398,7 @@ const handleSaveEdit = async () => {
                   />
                 </div>
               </div>
-               <div className="user-group col">
+              <div className="user-group col">
                 <label className="form-label-usuario">
                   <span className="form-label-text">Correo</span>
                 </label>

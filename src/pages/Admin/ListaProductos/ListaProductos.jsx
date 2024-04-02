@@ -10,6 +10,7 @@ import MenuLateral from "../../../components/Admin/MenuLateral/MenuLateral";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 import { MOSTRAR_FILE } from "../../../api/variables";
+import  jsPDF  from "jspdf";
 /* const categoryNames = {
   1: "Barriles",
   2: "Cantidad de Accesorios",
@@ -89,63 +90,31 @@ function ListaProductos() {
     });
   };
 
-const handleSaveEdit = async () => {
-  try {
-    const formData = new FormData(); // Creamos un objeto FormData para enviar los datos
-
-    // Agregamos cada campo del producto editado al objeto FormData
-    Object.entries(editedProduct).forEach(([key, value]) => {
-      formData.append(key, value);
-    });
-
-    await Products.updateProduct(editedProduct.id, formData); // Enviamos el objeto FormData al método de actualización
-
-    setEditMode(false);
-    const updatedProducts = await Products.getProducts();
-    if (Array.isArray(updatedProducts)) {
-      updatedProducts.sort((a, b) => a.id - b.id);
-      setProductos(updatedProducts);
-    } else {
-      console.error("Los datos de productos no son un array:", updatedProducts);
-    }
-    toast.success("Cambios guardados correctamente");
-  } catch (error) {
-    console.error("Error al guardar la edición del producto:", error);
-    toast.error("Error al guardar los cambios");
-  }
-};
-
-
-  /*  const handleToggleAddProductForm = () => {
-    setShowAddProductForm(!showAddProductForm);
-    setNewProduct({
-      nombre: "",
-      descripcion: "",
-      precio: 0,
-      cantidadEntrada: 0,
-      cantidad: 0,
-      fechaEntrada: "",
-      fechaVencimiento: "",
-      CategoriaId: 0,
-      ProveedorId: 0,
-    });
-  }; */
-
-  /*   const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setNewProduct({ ...newProduct, [name]: value });
-  }; */
-
-  /*  const handleSaveNewProduct = async () => {
+  const handleSaveEdit = async () => {
     try {
-      await handleAggProduct(newProduct);
-      setShowAddProductForm(false);
-      toast.success("Producto agregado correctamente");
+      const formData = new FormData(); 
+      Object.entries(editedProduct).forEach(([key, value]) => {
+        formData.append(key, value);
+      });
+
+      await Products.updateProduct(editedProduct.id, formData); 
+      setEditMode(false);
+      const updatedProducts = await Products.getProducts();
+      if (Array.isArray(updatedProducts)) {
+        updatedProducts.sort((a, b) => a.id - b.id);
+        setProductos(updatedProducts);
+      } else {
+        console.error(
+          "Los datos de productos no son un array:",
+          updatedProducts
+        );
+      }
+      toast.success("Cambios guardados correctamente");
     } catch (error) {
-      console.error("Error al agregar producto:", error);
-      toast.error("Error al agregar el producto");
+      console.error("Error al guardar la edición del producto:", error);
+      toast.error("Error al guardar los cambios");
     }
-  }; */
+  };
 
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
@@ -178,6 +147,53 @@ const handleSaveEdit = async () => {
     saveAs(data, "productos.xlsx");
   };
 
+  //la constante para pdf
+  const generarPDF = () => {
+    const doc = new jsPDF();
+    let yPos = 20;
+    let page = 1;
+    const lineHeight = 10;
+
+    productos.forEach((productos, index) => {
+      const { id, nombre, descripcion, precio, cantidadEntrada, cantidad,fechaEntrada,CategoriaId,Imagen,ProveedorId} = productos;
+
+     const data = [
+    `ID: ${id}`,
+        `Nombre: ${nombre}`,
+        `Descripcion: ${descripcion}`,
+        `Precio: ${ precio}`,
+        `Cantidad Entrada: ${cantidadEntrada}`,
+         `Celular: ${ cantidad}`,
+         `fechaEntrada: ${  fechaEntrada}`,
+          `CategoriaId: ${  CategoriaId}`,
+          `Imagen: ${ Imagen}`,
+          `ProveedorId: ${  ProveedorId}`,
+        
+   
+      ];
+
+      const maxLineLength = data.reduce(
+        (max, line) => Math.max(max, doc.getStringUnitWidth(line)),
+        0
+      );
+
+      if (yPos + lineHeight * data.length > 280) {
+        doc.addPage();
+        yPos = 20;
+        page++;
+        doc.text("Tabla de usuarios (página " + page + ")", 95, 10);
+      }
+
+      data.forEach((line, i) => {
+        const lineYPos = yPos + lineHeight * i;
+        doc.text(line, 10, lineYPos);
+      });
+
+      yPos += lineHeight * (data.length + 1);
+    });
+
+    doc.save("productos.pdf");
+  };
   return (
     <>
       <MenuLateral />
@@ -206,120 +222,6 @@ const handleSaveEdit = async () => {
             </Link>
           </button>
         </div>
-
-        {/* {showAddProductForm && (
-          <div className="add-product-form">
-            <h3>Agregar Producto</h3>
-            <form>
-              <label className="campos-form-product">Nombre:</label>
-              <input
-                className="inputs-form-product"
-                type="text"
-                id="nombre"
-                name="nombre"
-                value={newProduct.nombre}
-                onChange={handleInputChange}
-              />
-
-              <label className="campos-form-product">Descripción:</label>
-              <input
-                className="inputs-form-product"
-                type="text"
-                id="descripcion"
-                name="descripcion"
-                value={newProduct.descripcion}
-                onChange={handleInputChange}
-              />
-
-              <label className="campos-form-product">Precio:</label>
-              <input
-                className="inputs-form-product"
-                type="number" // Cambiado a tipo number
-                id="precio"
-                name="precio"
-                value={newProduct.precio}
-                onChange={handleInputChange}
-              />
-
-              <label className="campos-form-product">Cantidad Entrada:</label>
-              <input
-                className="inputs-form-product"
-                type="number" // Cambiado a tipo number
-                id="cantidadEntrada"
-                name="cantidadEntrada"
-                value={newProduct.cantidadEntrada}
-                onChange={handleInputChange}
-              />
-
-              <label className="campos-form-product">Cantidad:</label>
-              <input
-                className="inputs-form-product"
-                type="number" // Cambiado a tipo number
-                id="cantidad"
-                name="cantidad"
-                value={newProduct.cantidad}
-                onChange={handleInputChange}
-              />
-
-              <label className="campos-form-product">Fecha Entrada:</label>
-              <input
-                className="inputs-form-product"
-                type="date" // Cambiado a tipo date
-                id="fechaEntrada"
-                name="fechaEntrada"
-                value={newProduct.fechaEntrada}
-                onChange={handleInputChange}
-              />
-
-              <label className="campos-form-product">Fecha Vencimiento:</label>
-              <input
-                className="inputs-form-product"
-                type="date" // Cambiado a tipo date
-                id="fechaVencimiento"
-                name="fechaVencimiento"
-                value={newProduct.fechaVencimiento}
-                onChange={handleInputChange}
-              />
-
-              <label className="campos-form-product">Categoría ID:</label>
-              <input
-                className="inputs-form-product"
-                type="number" // Cambiado a tipo number
-                id="CategoriaId"
-                name="CategoriaId"
-                value={newProduct.CategoriaId}
-                onChange={handleInputChange}
-              />
-
-              <label className="campos-form-product">Proveedor ID:</label>
-              <input
-                className="inputs-form-product"
-                type="number" // Cambiado a tipo number
-                id="ProveedorId"
-                name="ProveedorId"
-                value={newProduct.ProveedorId}
-                onChange={handleInputChange}
-              />
-
-              <div className="container-button-form-product">
-                <button
-                  type="button"
-                  className="button-agg-product-guardar"
-                  onClick={handleSaveNewProduct}
-                >
-                  Guardar
-                </button>
-                <button
-                  type="button"
-                  className="button-agg-product-cancelar"
-                  onClick={handleToggleAddProductForm}
-                >
-                  Cancelar
-                </button>
-              </div>
-            </form>
-          </div>
-        )} */}
 
         <table className="table-productos">
           <thead>
@@ -357,6 +259,11 @@ const handleSaveEdit = async () => {
               <th scope="col">
                 <button className="export" onClick={exportToExcel}>
                   Exportar a Excel{" "}
+                </button>
+              </th>
+              <th scope="col">
+                <button className="export" onClick={generarPDF}>
+                  Exportar a PDF
                 </button>
               </th>
             </tr>
