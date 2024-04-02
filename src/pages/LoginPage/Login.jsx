@@ -77,7 +77,7 @@ function Login() {
       } else {
         toast.error("Credenciales Inválidas.", {
           position: "top-right",
-          autoClose: 5000,
+          autoClose: 2000,
           hideProgressBar: false,
           closeOnClick: true,
           pauseOnHover: true,
@@ -88,7 +88,7 @@ function Login() {
     } catch (error) {
       toast.error(`Error de red: ${error.message}`, {
         position: "top-right",
-        autoClose: 5000,
+        autoClose: 2000,
         hideProgressBar: false,
         closeOnClick: true,
         pauseOnHover: true,
@@ -138,9 +138,9 @@ function Login() {
               Enviar
             </button>
           </form>
-{/*           <p className="text-login">
+          <p className="text-login">
             <Link to="/contraseña">¿Olvidaste tu contraseña?</Link>
-          </p> */}
+          </p>
           <p className="text-login">
             ¿Aún no tienes cuenta? <Link to="/register">Regístrate</Link>
           </p>

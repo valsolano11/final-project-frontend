@@ -93,6 +93,7 @@
 }
 
 /*   botones de la lista de los usuarios */
+
 .Editar-proveedor,
 .Eliminar-proveedor {
   border: none;
@@ -106,15 +107,16 @@
   margin-right: 10px;
 }
 
+
+
 .Editar-proveedor {
-  color: var(--color1);
-  background-color: var(--color3);
+  background-color: var(--color1);
+  color: var(--color3);
 }
 
 .Eliminar-proveedor {
-  color: var(--color1);
-  background-color: var(--color3);
-
+  background-color: var(--color1);
+  color: var(--color3);
 }
 
 .buttons-proveedores {
@@ -122,6 +124,7 @@
   white-space: nowrap;
   overflow: auto;
 }
+
 
 /*   paginacion */
 
@@ -150,27 +153,26 @@
 /*   agregar un nuevo usuario */
 
 .Agregar-proveedor {
-  background-color:var(--color1);
+  background-color: #000000;
   color: var(--color3);
   border: none;
   padding: 8px 10px;
   font-size: 14px;
   cursor: pointer;
   border-radius: 4px;
-
+  margin-top: 4rem;
 
 }
 
-.Agregar-proveedor a {
+.buttons-agg-proveedor {
+  position: absolute;
+  margin-top: -30px;
+  margin-right: 73%;
+}
+
+.buttons-agg-proveedor a {
   text-decoration: none;
   color: var(--color3);
-}
-
-.buttons-agg button {
-  position: relative;
-  margin-right: 10%;
-  left: 1rem;
-
 }
 
 /* formulario de agregar un nuevo usuario */

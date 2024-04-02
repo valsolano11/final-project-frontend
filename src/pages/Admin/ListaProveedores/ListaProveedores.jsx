@@ -6,6 +6,7 @@ import Proveedores from "../../../services/ProveedoresService";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import MenuLateral from "../../../components/Admin/MenuLateral/MenuLateral";
+import { Link } from "react-router-dom";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 
@@ -22,49 +23,28 @@ function ListaProveedores() {
     celular: "",
   });
 
-  const [showAddProveedorForm, setShowAddProveedorForm] = useState(false);
-  const [newProveedor, setNewProveedor] = useState({
-    id: null,
-    nombre: "",
-    direccion: "",
-    celular: "",
-  });
-
   useEffect(() => {
     const loadProveedores = async () => {
       try {
         const proveedoresData = await Proveedores.getProveedores();
         if (Array.isArray(proveedoresData)) {
-          const sortedProveedores = [...proveedoresData].sort((a, b) => a.id - b.id);
+          const sortedProveedores = [...proveedoresData].sort(
+            (a, b) => a.id - b.id
+          );
           setProveedores(sortedProveedores);
         } else {
-          console.error("Los datos de proveedores no son un arreglo:", proveedoresData);
+          console.error(
+            "Los datos de proveedores no son un arreglo:",
+            proveedoresData
+          );
         }
       } catch (error) {
         console.error("Error al obtener proveedores:", error);
       }
     };
-  
+
     loadProveedores();
   }, []);
-
-  const handleAggProveedor = async (proveedor) => {
-    try {
-      const newProveedor = await Proveedores.addProveedor(proveedor);
-      console.log("Proveedor agregado:", newProveedor);
-      const updatedProveedores = await Proveedores.getProveedores();
-      if (Array.isArray(updatedProveedores)) {
-        const sortedProveedores = [...updatedProveedores].sort((a, b) => a.id - b.id);
-        setProveedores(sortedProveedores);
-      } else {
-        console.error("Los datos de proveedores no son un arreglo:", updatedProveedores);
-      }
-      toast.success("Proveedor agregado correctamente");
-    } catch (error) {
-      console.error("Error al agregar proveedor:", error);
-      toast.error("Error al agregar el proveedor");
-    }
-  };
 
   const handleSearchInputChange = (event) => {
     setSearchQuery(event.target.value);
@@ -111,32 +91,6 @@ function ListaProveedores() {
     }
   };
 
-  const handleToggleAddProveedorForm = () => {
-    setShowAddProveedorForm(!showAddProveedorForm);
-    setNewProveedor({
-      id: "",
-      nombre: "",
-      direccion: "",
-      celular: "",
-    });
-  };
-
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setNewProveedor({ ...newProveedor, [name]: value });
-  };
-
-  const handleSaveNewProveedor = async () => {
-    try {
-      await handleAggProveedor(newProveedor);
-      setShowAddProveedorForm(false);
-      toast.success("Proveedor agregado correctamente");
-    } catch (error) {
-      console.error("Error al agregar proveedor:", error);
-      toast.error("Error al agregar el proveedor");
-    }
-  };
-
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentProveedores = proveedores
@@ -153,21 +107,19 @@ function ListaProveedores() {
   for (let i = 1; i <= Math.ceil(proveedores.length / itemsPerPage); i++) {
     pageNumbers.push(i);
   }
-    const exportToExcel = () => {
-      const worksheet = XLSX.utils.json_to_sheet(usuarios);
-      const workbook = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(workbook, worksheet, "Usuarios");
-      const excelBuffer = XLSX.write(workbook, {
-        bookType: "xlsx",
-        type: "array",
-      });
-      const data = new Blob([excelBuffer], {
-        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-      });
-      saveAs(data, "usuarios.xlsx");
-    };
-  
-
+  const exportToExcel = () => {
+    const worksheet = XLSX.utils.json_to_sheet(proveedores);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Proveedores");
+    const excelBuffer = XLSX.write(workbook, {
+      bookType: "xlsx",
+      type: "array",
+    });
+    const data = new Blob([excelBuffer], {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    });
+    saveAs(data, "proveedores.xlsx");
+  };
   return (
     <>
       <MenuLateral />
@@ -186,59 +138,13 @@ function ListaProveedores() {
           </button>
         </div>
 
-        <div className="buttons-agg">
-          <button
-            className="Agregar-proveedor"
-            onClick={handleToggleAddProveedorForm}
-          >
-            <FaPlus />
+        <div className="buttons-agg-proveedor">
+          <button className="Agregar-proveedor">
+            <Link to="/agregarproveedores">
+              <FaPlus />
+            </Link>
           </button>
         </div>
-
-        {showAddProveedorForm && (
-          <div className="add-proveedor-form">
-            <h3>Agregar Proveedor</h3>
-            <form>
-              <label className="campos-form-proveedor">Nombre:</label>
-              <input
-                className="inputs-form-proveedor"
-                type="text"
-                id="nombre"
-                name="nombre"
-                value={newProveedor.nombre}
-                onChange={handleInputChange}
-              />
-
-              <label className="campos-form-proveedor">Dirección:</label>
-              <input
-                className="inputs-form-proveedor"
-                type="text"
-                id="direccion"
-                name="direccion"
-                value={newProveedor.direccion}
-                onChange={handleInputChange}
-              />
-
-              <label className="campos-form-proveedor">Celular:</label>
-              <input
-                className="inputs-form-proveedor"
-                type="text"
-                id="celular"
-                name="celular"
-                value={newProveedor.celular}
-                onChange={handleInputChange}
-              />
-
-              <button
-                type="button"
-                className="Guardar-edit"
-                onClick={handleSaveNewProveedor}
-              >
-                Guardar
-              </button>
-            </form>
-          </div>
-        )}
 
         <table className="table-proveedores">
           <thead>
@@ -274,14 +180,14 @@ function ListaProveedores() {
                     {!editMode && (
                       <>
                         <button
-                          className="Editar-usuario"
-                          onClick={() => handleEditUser(prov)}
+                          className="Editar-proveedor"
+                          onClick={() => handleEditProveedor(prov)}
                         >
                           <FaEdit />
                         </button>
                         <button
-                          className="Eliminar-usuario"
-                          onClick={() => handleDeleteUser(prov.id)}
+                          className="Eliminar-proveedor"
+                          onClick={() => handleDeleteProveedor(prov.id)}
                         >
                           <FaTrash />
                         </button>
@@ -296,15 +202,33 @@ function ListaProveedores() {
 
         {editMode && (
           <div className="form-container">
-            <form className="form-categoria" id="formulario">
+            <form className="form-producto" id="formulario">
               <h3>Editar Proveedor</h3>
               <div className="form-row">
+                <div className="producto-group col ">
+                  <label className="form-label-usuario">
+                    <span className="form-label-text">Id</span>
+                  </label>
+                  <input
+                    className="form-control-producto"
+                    type="text"
+                    id="id"
+                    name="id"
+                    value={editedProveedor.id} 
+                    onChange={(e) =>
+                      setEditedProveedor({
+                        ...editedProveedor,
+                        id: e.target.value,
+                      })
+                    }
+                  />
+                </div>
                 <div className="producto-group col ">
                   <label className="form-label-usuario">
                     <span className="form-label-text">Nombre</span>
                   </label>
                   <input
-                    className="inputs-form-proveedor"
+                    className="form-control-producto"
                     type="text"
                     id="nombre"
                     name="nombre"
@@ -317,65 +241,68 @@ function ListaProveedores() {
                     }
                   />
                 </div>
+              </div>
+              <div className="form-row">
+                <div className="producto-group col ">
+                  <label className="form-label-usuario">
+                    <span className="form-label-text">Dirección</span>
+                  </label>
+                  <input
+                    className="form-control-producto"
+                    type="text"
+                    id="direccion"
+                    name="direccion"
+                    value={editedProveedor.direccion}
+                    onChange={(e) =>
+                      setEditedProveedor({
+                        ...editedProveedor,
+                        direccion: e.target.value,
+                      })
+                    }
+                  />
+                </div>
 
                 <div className="producto-group col ">
                   <label className="form-label-usuario">
-                    <span className="form-label-text">Direccion</span>
-                  </label>
-                <input
-                  className="inputs-form-proveedor"
-                  type="text"
-                  id="direccion"
-                  name="direccion"
-                  value={editedProveedor.direccion}
-                  onChange={(e) =>
-                    setEditedProveedor({
-                      ...editedProveedor,
-                      direccion: e.target.value,
-                    })
-                  }
-                />
-              </div>
-              </div>
-                     <div className="producto-group col ">
-                  <label className="form-label-usuario">
                     <span className="form-label-text">Celular</span>
                   </label>
-             
-              <input
-                className="inputs-form-proveedor"
-                type="text"
-                id="celular"
-                name="celular"
-                value={editedProveedor.celular}
-                onChange={(e) =>
-                  setEditedProveedor({
-                    ...editedProveedor,
-                    celular: e.target.value,
-                  })
-                }
-              />
+                  <input
+                    className="form-control-producto"
+                    type="text"
+                    id="celular"
+                    name="celular"
+                    value={editedProveedor.celular}
+                    onChange={(e) =>
+                      setEditedProveedor({
+                        ...editedProveedor,
+                        celular: e.target.value,
+                      })
+                    }
+                  />
+                </div>
               </div>
 
-              <button
-                type="button"
-                className="Guardar-edit"
-                onClick={handleSaveEdit}
-              >
-                Guardar
-              </button>
-              <button
-                type="button"
-                className="Cancelar-edit"
-                onClick={handleCancelEdit}
-              >
-                Cancelar
-              </button>
+              <div className="container-button-form-edit-user">
+                <button
+                  type="button"
+                  className="button-guardar-edit-user"
+                  onClick={handleSaveEdit}
+                >
+                  Guardar
+                </button>
+                <button
+                  type="button"
+                  className="button-cancelar-edit-user"
+                  onClick={handleCancelEdit}
+                >
+                  Cancelar
+                </button>
+              </div>
             </form>
           </div>
         )}
 
-        <div className="pagination-container" style={{ color: "#000000" }}>
+        <div className="pagination-container">
           {pageNumbers.map((number) => (
             <span
               key={number}

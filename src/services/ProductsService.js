@@ -1,10 +1,11 @@
-const BASE_URL = "http://localhost:7000/productos";
+import api from "../api/query";
+const BASE_URL = "/productos";
 
 const Products = {
   getProducts: async () => {
     try {
-      const response = await fetch(BASE_URL);
-      return response.json();
+      const response = await api(BASE_URL);
+      return response.data;
     } catch (error) {
       console.error("Error al obtener productos:", error);
       throw error;
@@ -13,8 +14,8 @@ const Products = {
 
   getProductById: async (id) => {
     try {
-      const response = await fetch(`${BASE_URL}/${id}`);
-      return response.json();
+      const response = await api(`${BASE_URL}/${id}`);
+      return response.data;
     } catch (error) {
       console.error(`Error al obtener producto con ID ${id}:`, error);
       throw error;
@@ -23,14 +24,14 @@ const Products = {
 
   addProduct: async (ProductData) => {
     try {
-      const response = await fetch(BASE_URL, {
+      const response = await api(BASE_URL, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(ProductData),
       });
-      return response.json();
+      return response.data;
     } catch (error) {
       console.error("Error al agregar producto:", error);
       throw error;
@@ -39,15 +40,15 @@ const Products = {
 
   updateProduct: async (id, UserData) => {
     try {
-      const response = await fetch(`${BASE_URL}/${id}`, {
+      const response = await api(`${BASE_URL}/${id}`, {
         method: "PUT",
         headers: {
-          "Content-Type": "application/json",
+          "Content-Type": "multipart/form-data",
         },
         body: JSON.stringify(UserData),
       });
 
-      return response.json();
+      return response.data;
     } catch (error) {
       console.error(`Error al actualizar producto con ID ${id}:`, error);
       throw error;
@@ -56,10 +57,10 @@ const Products = {
 
   deleteProduct: async (id) => {
     try {
-      const response = await fetch(`${BASE_URL}/${id}`, {
+      const response = await api(`${BASE_URL}/${id}`, {
         method: "DELETE",
       });
-      return response.json();
+      return response.data;
     } catch (error) {
       console.error(`Error al eliminar producto con ID ${id}:`, error);
       throw error;

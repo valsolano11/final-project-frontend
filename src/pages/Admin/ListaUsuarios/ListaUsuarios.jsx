@@ -8,8 +8,8 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { format } from "date-fns";
 import MenuLateral from "../../../components/Admin/MenuLateral/MenuLateral";
-/* 
-import { Document, Page, Text, View, StyleSheet } from "react-pdf"; */ //exportar a pdf
+import api from "../../../api/query";
+import { jsPDF } from "jspdf";
 
 import * as XLSX from "xlsx"; 
 import { saveAs } from "file-saver";
@@ -35,10 +35,29 @@ function ListaUsuarios() {
     const loadUsers = async () => {
       try {
         const token = localStorage.getItem("token");
-        const usersData = await Users.getUsers(token);
-        setUsuarios(usersData);
+        const response = await api.get("/usuarios", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (response.data) {
+          const usersData = await response.data;
+          setUsuarios(usersData);
+        } else {
+          throw new Error("Error al obtener usuarios: " + response.statusText);
+        }
       } catch (error) {
-        console.error("Error al obtener usuarios:", error);
+        console.error("Error al obtener usuarios:", error.message);
+        toast.error("Error al obtener usuarios: " + error.message, {
+          position: "top-right",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+        });
       }
     };
 
@@ -62,7 +81,6 @@ function ListaUsuarios() {
       toast.error("Error al eliminar el usuario");
     }
   };
-
   const handleEditUser = (user) => {
     setEditMode(true);
     setEditedUser(user);
@@ -82,19 +100,25 @@ function ListaUsuarios() {
     });
   };
 
-  const handleSaveEdit = async () => {
-    try {
-      await Users.updateUser(editedUser.id, editedUser);
-      setEditMode(false);
-      const updatedUsers = await Users.getUsers();
-      updatedUsers.sort((a, b) => a.id - b.id);
-      setUsuarios(updatedUsers);
-      toast.success("Cambios guardados correctamente");
-    } catch (error) {
-      console.error(`Error al guardar la edición del usuario:`, error);
-      toast.error("Error al guardar los cambios");
-    }
-  };
+const handleSaveEdit = async () => {
+  try {
+    await Users.updateUser(
+      editedUser.id,
+      editedUser,
+      localStorage.getItem("token")
+    );
+    setEditMode(false);
+    const updatedUsers = usuarios.map((user) =>
+      user.id === editedUser.id ? editedUser : user
+    );
+    setUsuarios(updatedUsers);
+    toast.success("Cambios guardados correctamente");
+  } catch (error) {
+    console.error("Error al guardar la edición del usuario:", error);
+    toast.error("Error al guardar los cambios");
+  }
+};
+
 
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
@@ -126,21 +150,28 @@ function ListaUsuarios() {
     return format(new Date(dateString), "dd/MM/yyyy");
   };
 
-  //la constante para excel
-  const exportToExcel = () => {
-    const worksheet = XLSX.utils.json_to_sheet(usuarios);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Usuarios");
-    const excelBuffer = XLSX.write(workbook, {
-      bookType: "xlsx",
-      type: "array",
-    });
-    const data = new Blob([excelBuffer], {
-      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-    });
-    saveAs(data, "usuarios.xlsx");
-  };
-  
+ const exportToExcel = () => {
+   const usuariosFiltrados = usuarios.map(
+     ({ nombre, apellido, direccion, celular }) => ({
+       nombre,
+       apellido,
+       direccion,
+       celular,
+     })
+   );
+   const worksheet = XLSX.utils.json_to_sheet(usuariosFiltrados);
+   const workbook = XLSX.utils.book_new();
+   XLSX.utils.book_append_sheet(workbook, worksheet, "Usuarios");
+   const excelBuffer = XLSX.write(workbook, {
+     bookType: "xlsx",
+     type: "array",
+   });
+   const data = new Blob([excelBuffer], {
+     type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+   });
+   saveAs(data, "usuarios.xlsx");
+ };
+
 
   return (
     <>
@@ -218,11 +249,7 @@ function ListaUsuarios() {
                 <td>{getRolName(usuario.RolId)}</td>
                 <td>
                   <div className="buttons-users">
-                    {/*                     <button className="button-usuario-especifico">
-                      <Link to={`/usuarioespecifico/${usuario.id}`}>
-                        <FaEye />
-                      </Link>
-                    </button> */}
+                  
                     {!editMode && (
                       <>
                         <button

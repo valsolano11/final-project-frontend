@@ -12,21 +12,7 @@
     margin-top: 5%;
 }
 
-.cerrar-form-metodo {
-    margin-left: 90%;
-    border: 1px solid var(--color1);
-    border-radius: 20px;
-    font-size: 20px;
-    width: 8%;
-    background-color: var(--color4);
-}
-
-.cerrar-form-metodo:hover {
-    background-color: var(--color1);
-    color: var(--color4);
-}
-
-.form-metodo h3 {
+.form-metodo h1 {
     color: var(--color1);
     text-align: center;
     font-size: 23px;
@@ -43,7 +29,8 @@
     flex: 1;
     margin: 0 1em 1em;
 }
-.form-label-text{
+
+.form-label-text {
     font-size: 20px;
 }
 

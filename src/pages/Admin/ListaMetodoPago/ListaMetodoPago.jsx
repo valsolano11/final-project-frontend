@@ -2,67 +2,74 @@ import { useState, useEffect } from "react";
 import { CiSearch } from "react-icons/ci";
 import { Link } from "react-router-dom";
 import "./ListaMetodoPago.css";
-import { FaEye, FaEdit, FaTrash, FaPlus } from "react-icons/fa";
-import Proveedores from "../../../services/ProveedoresService";
+import { FaEdit, FaTrash, FaPlus } from "react-icons/fa";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import MenuLateral from "../../../components/Admin/MenuLateral/MenuLateral";
+import * as XLSX from "xlsx";
+import { saveAs } from "file-saver";
+import MetodoPagoService from "../../../services/MetodoPagoService";
 
 function ListaMetodoPago() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [proveedores, setProveedores] = useState([]);
+  const [MetodosPago, setMetodoPago] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(8);
   const [editMode, setEditMode] = useState(false);
-  const [editedProveedor, setEditedProveedor] = useState({
+  const [editedMetodoPago, setEditedMetodoPago] = useState({
     id: null,
     nombre: "",
   });
 
-
   useEffect(() => {
-    const loadProveedores = async () => {
+    const loadMetodoPago = async () => {
       try {
-        const proveedoresData = await Proveedores.getProveedores();
-        if (Array.isArray(proveedoresData)) {
-          const sortedProveedores = [...proveedoresData].sort((a, b) => a.id - b.id);
-          setProveedores(sortedProveedores);
+        const metodoPagoData = await MetodoPagoService.getMetodosPago();
+        if (Array.isArray(metodoPagoData)) {
+          const sortedMetodoPago = [...metodoPagoData].sort(
+            (a, b) => a.id - b.id
+          );
+          setMetodoPago(sortedMetodoPago);
         } else {
-          console.error("Los datos del metodo de pago no son un arreglo:", proveedoresData);
+          console.error(
+            "Los datos del metodo de pago no son un arreglo:",
+            metodoPagoData
+          );
         }
       } catch (error) {
         console.error("Error al obtener metodo de pago:", error);
       }
     };
-  
-    loadProveedores();
-  }, []);
 
+    loadMetodoPago();
+  });
 
   const handleSearchInputChange = (event) => {
     setSearchQuery(event.target.value);
   };
 
-  const handleDeleteProveedor = async (id) => {
+  const handleDeleteMetodoPago = async (id) => {
     try {
-      await Proveedores.deleteProveedor(id);
-      const updatedProveedores = proveedores.filter((prov) => prov.id !== id);
-      setProveedores(updatedProveedores);
-      toast.success("Proveedor eliminado correctamente");
+      await MetodoPagoService.deleteMetodoPago(id);
+      const updatedMetodoPago = MetodosPago.filter(
+        (metodo) => metodo.id !== id
+      );
+      setMetodoPago(updatedMetodoPago);
+      toast.success("El metodo eliminado correctamente");
     } catch (error) {
-      console.error(`Error al eliminar proveedor con ID ${id}:`, error);
-      toast.error("Error al eliminar el proveedor");
+      console.error(`Error al eliminar metodo con ID ${id}:`, error);
+      toast.error("Error al eliminar el metodo");
     }
   };
 
-  const handleEditProveedor = (prov) => {
+  const handleEditMetodoPago = (metodo) => {
     setEditMode(true);
-    setEditedProveedor(prov);
+    setEditedMetodoPago(metodo);
   };
 
   const handleCancelEdit = () => {
     setEditMode(false);
-    setEditedProveedor({
+    setEditedMetodoPago({
       id: null,
       nombre: "",
     });
@@ -70,36 +77,51 @@ function ListaMetodoPago() {
 
   const handleSaveEdit = async () => {
     try {
-      await Proveedores.updateProveedor(editedProveedor.id, editedProveedor);
+      await MetodoPagoService.updateMetodoPago(
+        editedMetodoPago.id,
+        editedMetodoPago
+      );
       setEditMode(false);
-      const updatedProveedores = await Proveedores.getProveedores();
-      updatedProveedores.sort((a, b) => a.id - b.id);
-      setProveedores(updatedProveedores);
+      const updatedMetodoPago = await MetodoPagoService.getMetodosPago();
+      updatedMetodoPago.sort((a, b) => a.id - b.id);
+      setMetodoPago(updatedMetodoPago);
       toast.success("Cambios guardados correctamente");
     } catch (error) {
-      console.error(`Error al guardar la edición del proveedor:`, error);
       toast.error("Error al guardar los cambios");
     }
   };
 
-
-
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentProveedores = proveedores
-    .filter((prov) =>
-      Object.values(prov).some(
-        (value) =>
-          value &&
-          value.toString().toLowerCase().includes(searchQuery.toLowerCase())
-      )
+  const currentMetodo = MetodosPago.filter((metodo) =>
+    Object.values(metodo).some(
+      (value) =>
+        value &&
+        value.toString().toLowerCase().includes(searchQuery.toLowerCase())
     )
-    .slice(indexOfFirstItem, indexOfLastItem);
+  ).slice(indexOfFirstItem, indexOfLastItem);
 
   const pageNumbers = [];
-  for (let i = 1; i <= Math.ceil(proveedores.length / itemsPerPage); i++) {
+  for (
+    let i = 1;
+    i <= Math.ceil(MetodoPagoService.length / itemsPerPage);
+    i++
+  ) {
     pageNumbers.push(i);
   }
+  const exportToExcel = () => {
+    const worksheet = XLSX.utils.json_to_sheet(MetodoPagoService);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "MetodoPago");
+    const excelBuffer = XLSX.write(workbook, {
+      bookType: "xlsx",
+      type: "array",
+    });
+    const data = new Blob([excelBuffer], {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    });
+    saveAs(data, "metodoPago.xlsx");
+  };
 
   return (
     <>
@@ -119,9 +141,9 @@ function ListaMetodoPago() {
           </button>
         </div>
 
-        <div className="buttons-agg">
-          <button className="Agregar-proveedor">
-            <Link to="/agregarmetodopago">
+        <div className="buttons-agg-metodo">
+          <button className="Agregar-metodopago">
+            <Link to="/agregarMetodo">
               <FaPlus />
             </Link>
           </button>
@@ -136,32 +158,31 @@ function ListaMetodoPago() {
               <th scope="col" className="header-table-proveedores">
                 Nombre
               </th>
-              <th scope="col"></th>
+              <th scope="col">
+                <button className="export" onClick={exportToExcel}>
+                  Exportar a Excel{" "}
+                </button>
+              </th>
             </tr>
           </thead>
           <tbody>
-            {currentProveedores.map((prov) => (
-              <tr key={prov.id}>
-                <td>{prov.id}</td>
-                <td>{prov.nombre}</td>
+            {currentMetodo.map((metodo) => (
+              <tr key={metodo.id}>
+                <td>{metodo.id}</td>
+                <td>{metodo.nombre}</td>
                 <td>
                   <div className="buttons-proveedores">
-                    <button className="button-proveedor-especifico">
-                      <Link to={`/proveedorspecifico/${prov.id}`}>
-                        <FaEye />
-                      </Link>
-                    </button>
                     {!editMode && (
                       <>
                         <button
                           className="Editar-proveedor"
-                          onClick={() => handleEditProveedor(prov)}
+                          onClick={() => handleEditMetodoPago(metodo)}
                         >
                           <FaEdit />
                         </button>
                         <button
                           className="Eliminar-proveedor"
-                          onClick={() => handleDeleteProveedor(prov.id)}
+                          onClick={() => handleDeleteMetodoPago(metodo.id)}
                         >
                           <FaTrash />
                         </button>
@@ -184,56 +205,11 @@ function ListaMetodoPago() {
                 type="text"
                 id="nombre"
                 name="nombre"
-                value={editedProveedor.nombre}
+                value={editedMetodoPago.nombre}
                 onChange={(e) =>
-                  setEditedProveedor({
-                    ...editedProveedor,
+                  setEditedMetodoPago({
+                    ...editedMetodoPago,
                     nombre: e.target.value,
-                  })
-                }
-              />
-
-              <label className="campos-form-proveedor">Dirección:</label>
-              <input
-                className="inputs-form-proveedor"
-                type="text"
-                id="direccion"
-                name="direccion"
-                value={editedProveedor.direccion}
-                onChange={(e) =>
-                  setEditedProveedor({
-                    ...editedProveedor,
-                    direccion: e.target.value,
-                  })
-                }
-              />
-
-              <label className="campos-form-proveedor">Teléfono:</label>
-              <input
-                className="inputs-form-proveedor"
-                type="text"
-                id="telefono"
-                name="telefono"
-                value={editedProveedor.telefono}
-                onChange={(e) =>
-                  setEditedProveedor({
-                    ...editedProveedor,
-                    telefono: e.target.value,
-                  })
-                }
-              />
-
-              <label className="campos-form-proveedor">Celular:</label>
-              <input
-                className="inputs-form-proveedor"
-                type="text"
-                id="celular"
-                name="celular"
-                value={editedProveedor.celular}
-                onChange={(e) =>
-                  setEditedProveedor({
-                    ...editedProveedor,
-                    celular: e.target.value,
                   })
                 }
               />

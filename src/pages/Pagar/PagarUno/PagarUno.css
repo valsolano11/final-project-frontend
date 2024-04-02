@@ -74,12 +74,12 @@
 /* Media query para pantallas más pequeñas */
 @media screen and (max-width: 868px) {
 
-    .pagar-left{
+    .pagar-left {
         width: 100%;
         float: none;
     }
 
-    
+
 
     .pagar-left button,
     .pagar-left form,

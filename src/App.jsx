@@ -41,6 +41,8 @@ import Agregarproveedores from "./pages/agregarproveedores/AgregarProveedores";
 
 import Pasarela1 from "./pages/PasarelaPgao/Pasarela1/Pasarela1";
 
+import MetPago from "./pages/MetPago/MetPago";
+
 function App() {
   return (
     <Router>
@@ -77,6 +79,7 @@ function App() {
         <Route path="/agregarcategoria" element={<AgregarCategoria />} />
         <Route path="/agregarproveedores" element={<Agregarproveedores />} />
         <Route path="/agregarMetodo" element={<AgregarMetodo />} />
+        <Route path="/metpago" element={<MetPago />} />
       </Routes>
     </Router>
   );

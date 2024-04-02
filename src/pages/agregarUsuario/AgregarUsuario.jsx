@@ -3,9 +3,9 @@ import { useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "./AgregarUsuario.css";
-
+import { Link } from "react-router-dom";
+import api from "../../api/query";
 import { FaTimes } from "react-icons/fa";
-
 
 function AgregarUsuario() {
   const navigate = useNavigate();
@@ -19,33 +19,36 @@ function AgregarUsuario() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-  
+
     try {
       if (!name || !lastName || !email || !phone || !password || !address) {
         throw new Error("Llenar todos los campos es obligatorio.");
       }
-  
+
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(email)) {
         throw new Error("Ingresa una dirección de correo electrónico válida.");
       }
-  
-      const response = await fetch("http://localhost:7000/registro", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          nombre: name,
-          apellido: lastName,
-          correo: email,
-          celular: phone,
-          password: password,
-          direccion: address,
-        }),
-      });
-  
-      if (response.ok) {
+
+      const body = {
+        nombre: name,
+        apellido: lastName,
+        correo: email,
+        celular: phone,
+        password: password,
+        direccion: address,
+      };
+
+      const response = await api.post("/registro", body);
+      console.log(response);
+      if (response.data) {
+        const responseData = response.data;
+        const { token } = responseData;
+        console.log(responseData);
+        localStorage.setItem("token", token);
+      }
+
+      if (response.data) {
         toast.success("Usuario registrado exitosamente.", {
           position: "top-right",
           autoClose: 5000,
@@ -55,24 +58,30 @@ function AgregarUsuario() {
           draggable: true,
           progress: undefined,
         });
-  
+
         setTimeout(() => {
           navigate("/listausuarios");
         }, 2000);
-      } else if (response.status === 400) {
-        const errorData = await response.json().catch(() => null);
-  
+      } else if (response.data === 400) {
+        const errorData = await response.data;
+
         if (errorData && errorData.message) {
           if (errorData.message.toLowerCase().includes("obligatorio")) {
             throw new Error(errorData.message);
-          } else if (errorData.message.toLowerCase().includes("correo electrónico ya está registrado")) {
-            throw new Error("El correo electrónico ya está registrado. Utiliza otro correo.");
+          } else if (
+            errorData.message
+              .toLowerCase()
+              .includes("correo electrónico ya está registrado")
+          ) {
+            throw new Error(
+              "El correo electrónico ya está registrado. Utiliza otro correo."
+            );
           } else {
             throw new Error(`Error al registrar usuario: ${errorData.message}`);
           }
         }
       } else {
-        const errorData = await response.json().catch(() => null);
+        const errorData = await response.data;
         if (errorData && errorData.message) {
           throw new Error(`Error: ${errorData.message}`);
         }
@@ -89,10 +98,9 @@ function AgregarUsuario() {
       });
     }
   };
-
-    const handleClose = () => {
-      navigate("/listausuarios"); 
-    };
+   const handleClose = () => {
+     navigate("/listaproveedores"); // Redirige al usuario a la lista de productos al cerrar el formulario
+   };
 
   return (
     <>

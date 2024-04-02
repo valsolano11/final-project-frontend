@@ -1,0 +1,42 @@
+@import url(../../components/variables.css);
+
+.metodo-pago-container{
+    margin-top: 3%;
+}
+
+.metodo-pago-container h1{
+    font-weight: 400;
+    margin-bottom: 10%;
+}
+
+.label-metpago{
+    color: var(--color3);
+    font-weight: 400;
+    margin-left: 5%;
+    margin-bottom: 8%;
+    font-size: 18px;
+}
+
+.label-metpago input{
+    margin-right: 6%;
+}
+
+.container-button-metpago{
+    margin-top: 10%;
+    display: flex;
+    justify-content: center;
+}
+
+.pagar-btn{
+    padding: 2%;
+    font-size: 17px;
+    border: none;
+    cursor: pointer;
+    border-radius: 30px;
+    width: 40%;
+    transition: all 0.4s ease-in-out;
+}
+
+.pagar-btn:hover{
+    background-color: var(--color7);
+}

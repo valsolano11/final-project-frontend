@@ -1,38 +1,38 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
-
+import "react-toastify/dist/ReactToastify.css";
 import "./AgregarMetodo.css";
+import { Link } from "react-router-dom";
+import { FaTimes } from "react-icons/fa";
 
-function Register() {
+function agregarMetodo() {
   const navigate = useNavigate();
-  const [showForm, setShowForm] = useState(true);
 
-  const [name, setName] = useState("");
- 
+  const [id, setId] = useState("");
+  const [nombre, setNombre] = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     try {
-      if (!name) {
-        throw new Error("El nombre del metodo de pago es requerido.");
+      if (!nombre) {
+        throw new Error("El nombre es obligatorio.");
       }
-      ///
-       console.log("Datos a enviar:", {
-         nombre: name,
-        
-       });
+
       const response = await fetch("http://localhost:7000/metodopago", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          nombre: name,
+  
+          nombre: nombre,
         }),
       });
+
       if (response.ok) {
-        toast.success("Metodo de pago registrado exitosamente.", {
+        toast.success("Metodo agregada exitosamente.", {
           position: "top-right",
           autoClose: 5000,
           hideProgressBar: false,
@@ -41,16 +41,18 @@ function Register() {
           draggable: true,
           progress: undefined,
         });
-        navigate("/listametodopago"); // Redirecciona a la lista de usuarios
+
+        setTimeout(() => {
+          navigate("/listametodopago");
+        }, 2000);
       } else if (response.status === 400) {
         const errorData = await response.json().catch(() => null);
+
         if (errorData && errorData.message) {
           if (errorData.message.toLowerCase().includes("obligatorio")) {
             throw new Error(errorData.message);
-          } else if (errorData.message.toLowerCase().includes("correo electrónico ya está registrado")) {
-            throw new Error("El correo electrónico ya está registrado. Utiliza otro correo.");
           } else {
-            throw new Error(`Error al registrar usuario: ${errorData.message}`);
+            throw new Error(`Error el metodo de pago: ${errorData.message}`);
           }
         }
       } else {
@@ -71,51 +73,61 @@ function Register() {
       });
     }
   };
+   const handleClose = () => {
+     navigate("/listametodopago"); // Redirige al usuario a la lista de productos al cerrar el formulario
+   };
 
-  const handleClose = () => {
-    setShowForm(false);
-    navigate("/listaMetodoPago");
-  };
 
   return (
     <>
-      {showForm && (
-        <div className="form-container">
-          <ToastContainer />
-          <form className="form-metodo" id="formulario">
-            <button className="cerrar-form-metodo" onClick={handleClose}>
-              X
-            </button>{" "}
-            {/* Botón de cierre */}
-            <h3>Agregar Metodo de pago</h3>
-            <div className="form-row-metodo">
-              <div className="metodo-group col ">
-                <label className="form-label-metodo">
-                  <span className="form-label-text">Nombre</span>
-                </label>
-                <input
-                  className="form-control-metodo"
-                  placeholder="Ingrese su nombre"
-                  type="text"
-                  id="nombre"
-                  name="nombre"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                />
-              </div> 
-              </div>
-            <button
-              type="button"
-              className="button-guardar-metodo"
-              onClick={handleSubmit}
-            >
-              Guardar
-            </button>
-          </form>
-        </div>
-      )}
+      <div className="form-container">
+        <ToastContainer />
+        <form className="form-producto">
+          <button className="close-button-producto" onClick={handleClose}>
+            <FaTimes />
+          </button>{" "}
+          <h3>Agregar Nuevo Metodo de Pago</h3>
+          <div className="form-row">
+            <div className="metodo-group">
+              <label className="form-label-text">Id</label>
+              <input
+                type="text"
+                name="nombre"
+                placeholder="Ingresa el ID"
+                required
+                className="form-control-metodo"
+                value={id}
+                onChange={(e) => setId(e.target.value)}
+              />
+            </div>
+          </div>
+          <div className="categoria-group">
+            <label className="form-label-text">Nombre</label>
+            <input
+              type="text"
+              name="nombre"
+              placeholder="Ingresa el nombre"
+              required
+              className="form-control-categoria"
+              value={nombre}
+              onChange={(e) => setNombre(e.target.value)}
+            />
+          </div>
+          <div className="container-buttons-agregar-categorias">
+            <div className="container-button-metodo">
+              <button
+                className="button-guardar-metodo"
+                type="button"
+                onClick={handleSubmit}
+              >
+                Enviar
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
     </>
   );
 }
 
-export default Register;
+export default agregarMetodo;

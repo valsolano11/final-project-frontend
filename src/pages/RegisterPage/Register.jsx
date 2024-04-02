@@ -142,17 +142,6 @@ function Register() {
             </div>
             <div className="input-group-register">
               <input
-                type="password"
-                name="password"
-                placeholder="Ingresa tu contraseña"
-                required
-                className="input-field-register"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-            </div>
-            <div className="input-group-register">
-              <input
                 type="text"
                 name="address"
                 placeholder="Ingresa tu dirección"
@@ -162,12 +151,31 @@ function Register() {
                 onChange={(e) => setAddress(e.target.value)}
               />
             </div>
-            <button className="button-register" type="button" onClick={handleSubmit}>
+            <div className="input-group-register">
+              <input
+                type="password"
+                name="password"
+                placeholder="Ingresa tu contraseña"
+                required
+                className="input-field-register"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+            </div>
+
+            <button
+              className="button-register"
+              type="button"
+              onClick={handleSubmit}
+            >
               Enviar
             </button>
           </form>
           <p className="text-register">
-            ¿Ya tienes una cuenta? <Link className="link-register" to="/login">Inicia Sesión</Link>
+            ¿Ya tienes una cuenta?{" "}
+            <Link className="link-register" to="/login">
+              Inicia Sesión
+            </Link>
           </p>
         </div>
       </div>

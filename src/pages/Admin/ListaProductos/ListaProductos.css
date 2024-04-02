@@ -165,17 +165,17 @@
   font-size: 14px;
   cursor: pointer;
   border-radius: 4px;
-  margin-top: 4rem;
+
 
 }
 
-.buttons-agg-producto {
+.buttons-agg {
   position: absolute;
   margin-top: -30px;
-  margin-right: 76.8%;
+  margin-right: 67%;
 }
 
-.buttons-agg-producto a {
+.buttons-agg a {
   text-decoration: none;
   color: var(--color3);
 }

@@ -67,7 +67,7 @@
 
 /* Botones de la lista de proveedores */
 
-.button-proveedor-especifico,
+
 .Editar-proveedor,
 .Eliminar-proveedor {
     border: none;
@@ -81,14 +81,7 @@
     margin-right: 10px;
 }
 
-.button-proveedor-especifico a {
-    text-decoration: none;
-    color: var(--color3);
-}
 
-.button-proveedor-especifico {
-    background-color: #007bff;
-}
 
 .Editar-proveedor {
     background-color: #4caf50;
@@ -132,23 +125,27 @@
 
 /* Agregar un nuevo proveedor */
 
-.Agregar-proveedor {
-    background-color: #4caf50;
+.Agregar-metodopago {
+    background-color: var(--color1);
     color: var(--color3);
     border: none;
     padding: 8px 10px;
-    text-align: right;
-    display: flex;
     font-size: 14px;
-    margin-top: 40%;
     cursor: pointer;
     border-radius: 4px;
+    margin-top: 4rem;
+
 }
 
-.buttons-agg {
+.buttons-agg-metodo {
     position: absolute;
-    margin-top: 30px;
-    margin-right: 74%;
+    margin-top: -30px;
+    margin-right: 73%;
+}
+
+.buttons-agg-metodo a {
+    text-decoration: none;
+    color: var(--color3);
 }
 
 /* Formulario de agregar un nuevo proveedor */

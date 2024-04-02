@@ -1,25 +1,29 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "./AgregarProducto.css";
 import { FaTimes } from "react-icons/fa";
+import api from "../../api/query";
 
 function Register() {
   const navigate = useNavigate();
 
+  const [id, setid] = useState("");
   const [nombre, setNombre] = useState("");
   const [descripcion, setDescripcion] = useState("");
   const [precio, setPrecio] = useState("");
   const [cantidadEntrada, setCantidadEntrada] = useState("");
   const [cantidad, setCantidad] = useState("");
   const [fechaEntrada, setFechaEntrada] = useState("");
-  const [CategoriaId, setCategoriaId] = useState("");
-  const [ProveedorId, setProveedorId] = useState("");
+  const [CategoriaId, setCategoriaId] = useState(0);
+  const [ProveedorId, setProveedorId] = useState(0);
+  const [Imagen, setImagen] = useState(null);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    const formData = new FormData(e.currentTarget);
     try {
       if (
         !nombre ||
@@ -34,24 +38,13 @@ function Register() {
         throw new Error("Llenar todos los campos es obligatorio.");
       }
 
-      const response = await fetch("http://localhost:7000/productos", {
-        method: "POST",
+      const response = await api.post("/productos", formData, {
         headers: {
-          "Content-Type": "application/json",
+          "Content-Type": "multipart/form-data",
         },
-        body: JSON.stringify({
-          nombre: nombre,
-          descripcion: descripcion,
-          precio: precio,
-          cantidadEntrada: cantidadEntrada,
-          cantidad: cantidad,
-          fechaEntrada: fechaEntrada,
-          CategoriaId: CategoriaId,
-          ProveedorId: ProveedorId,
-        }),
       });
-
-      if (response.ok) {
+      console.log(response);
+      if (response.data.id) {
         toast.success("Producto registrado exitosamente.", {
           position: "top-right",
           autoClose: 5000,
@@ -66,19 +59,20 @@ function Register() {
           navigate("/listaproductos");
         }, 2000);
       } else {
-        const errorData = await response.json().catch(() => null);
+        // const errorData = await response.json().catch(() => null);
 
-        if (errorData && errorData.issues) {
-          const errorMessage = errorData.issues
-            .map((issue) => issue.message)
-            .join("\n");
-          throw new Error(`Error al registrar producto: ${errorMessage}`);
-        } else {
-          throw new Error(`Error al registrar producto.`);
-        }
+        // if (errorData && errorData.issues) {
+        //   const errorMessage = errorData.issues
+        //     .map((issue) => issue.message)
+        //     .join("\n");
+        //   throw new Error(`Error al registrar producto: ${errorMessage}`);
+        // } else {
+        throw new Error(`Error al registrar producto.`);
+        // }
       }
     } catch (error) {
-      toast.error(error.message, {
+      console.log(error);
+      toast.error(error.response.data.message, {
         position: "top-right",
         autoClose: 5000,
         hideProgressBar: false,
@@ -98,44 +92,47 @@ function Register() {
     <>
       <div className="form-container">
         <ToastContainer />
-        <form className="form-producto" id="formulario">
+        <form className="form-producto" id="formulario" onSubmit={handleSubmit}>
           <button className="close-button-producto" onClick={handleClose}>
             <FaTimes />
           </button>{" "}
+          {/* Botón de cierre con el icono "X" */}
           <h3>Agregar Producto</h3>
           <div className="form-row">
             <div className="producto-group col ">
-              <label className="form-label-usuario">
-                <span className="form-label-text">Id</span>
-              </label>
-              <input
-                className="form-control-producto"
-                placeholder="Ingrese el ID"
-                required
-                type="text"
-                id="id"
-                name="id"
-              />
-            </div>
-            <div className="producto-group col ">
-              <label className="form-label-usuario">
-                <span className="form-label-text">Nombre</span>
+              <label className="form-label-productos">
+                <span className="form-label-text">id</span>
               </label>
               <input
                 className="form-control-producto"
                 placeholder="Ingrese su nombre"
                 required
                 type="text"
-                id="nombre"
-                name="nombre"
-                value={nombre}
-                onChange={(e) => setNombre(e.target.value)}
+                id="id"
+                name="id"
+                value={id}
+                onChange={(e) => setid(e.target.value)}
               />
             </div>
-          </div>
-          <div className="form-row">
+            <div className="form-row">
+              <div className="producto-group col ">
+                <label className="form-label-productos">
+                  <span className="form-label-text">Nombre</span>
+                </label>
+                <input
+                  className="form-control-producto"
+                  placeholder="Ingrese su nombre"
+                  required
+                  type="text"
+                  id="nombre"
+                  name="nombre"
+                  value={nombre}
+                  onChange={(e) => setNombre(e.target.value)}
+                />
+              </div>
+            </div>
             <div className="producto-group col ">
-              <label className="form-label-usuario">
+              <label className="form-label-productos">
                 <span className="form-label-text">Descripción</span>
               </label>
               <input
@@ -149,8 +146,10 @@ function Register() {
                 onChange={(e) => setDescripcion(e.target.value)}
               />
             </div>
+          </div>
+          <div className="form-row">
             <div className="producto-group col ">
-              <label className="form-label-usuario">
+              <label className="form-label-productos">
                 <span className="form-label-text">Precio</span>
               </label>
               <input
@@ -163,10 +162,9 @@ function Register() {
                 onChange={(e) => setPrecio(e.target.value)}
               />
             </div>
-          </div>
-          <div className="form-row">
+
             <div className="producto-group col ">
-              <label className="form-label-usuario">
+              <label className="form-label-productos">
                 <span className="form-label-text">Cantidad De Entrada</span>
               </label>
               <input
@@ -179,8 +177,10 @@ function Register() {
                 onChange={(e) => setCantidadEntrada(e.target.value)}
               />
             </div>
+          </div>
+          <div className="form-row">
             <div className="producto-group col ">
-              <label className="form-label-usuario">
+              <label className="form-label-productos">
                 <span className="form-label-text">Cantidad</span>
               </label>
               <input
@@ -193,10 +193,9 @@ function Register() {
                 onChange={(e) => setCantidad(e.target.value)}
               />
             </div>
-          </div>
-          <div className="form-row">
+
             <div className="producto-group col ">
-              <label className="form-label-usuario">
+              <label className="form-label-productos">
                 <span className="form-label-text">Fecha de Entrada</span>
               </label>
               <input
@@ -209,8 +208,10 @@ function Register() {
                 onChange={(e) => setFechaEntrada(e.target.value)}
               />
             </div>
+          </div>
+          <div className="form-row">
             <div className="producto-group col ">
-              <label className="form-label-usuario">
+              <label className="form-label-productos">
                 <span className="form-label-text">Categoría</span>
               </label>
               <input
@@ -223,40 +224,36 @@ function Register() {
                 onChange={(e) => setCategoriaId(e.target.value)}
               />
             </div>
-          </div>
-           <div className="form-row">
-          <div className="producto-group col ">
-            <label className="form-label-usuario">
-              <span className="form-label-text">Proveedor</span>
-            </label>
-            <input
-              type="number"
-              name="ProveedorId"
-              placeholder="Ingresa la ProveedorId del producto"
-              required
-              className="form-control-producto"
-              value={ProveedorId}
-              onChange={(e) => setProveedorId(e.target.value)}
-            />
+            <div className="producto-group col ">
+              <label className="form-label-productos">
+                <span className="form-label-text">Proveedor</span>
+              </label>
+              <input
+                type="number"
+                name="ProveedorId"
+                placeholder="Ingresa la ProveedorId del producto"
+                required
+                className="form-control-producto"
+                value={ProveedorId}
+                onChange={(e) => setProveedorId(e.target.value)}
+              />
+            </div>
           </div>
           <div className="producto-group col">
-            <label className="form-label-usuario">
+            <label className="form-label-productos">
               <span className="form-label-text">Imagen</span>
             </label>
             <input
-              type="file"
-              accept="image/*"
-              name="imagen"
-              required
               className="form-control-producto"
+              required
+              type="file"
+              id="imagen"
+              name="imagen"
+              accept="image/*"
+              onChange={(e) => setImagen(e.target.value)}
             />
           </div>
-          </div>
-          <button
-            type="button"
-            className="button-agg-producto-guardar"
-            onClick={handleSubmit}
-          >
+          <button type="submit" className="button-agg-producto-guardar">
             Guardar
           </button>
         </form>

@@ -1,14 +1,19 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { CiSearch } from "react-icons/ci";
 import { Link } from "react-router-dom";
 import "./ListaProductos.css";
-import {/*  FaEye, */ FaEdit, FaTrash, FaPlus } from "react-icons/fa";
+import { /*  FaEye, */ FaEdit, FaTrash, FaPlus } from "react-icons/fa";
 import Products from "../../../services/ProductsService";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import MenuLateral from "../../../components/Admin/MenuLateral/MenuLateral";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
+import { MOSTRAR_FILE } from "../../../api/variables";
+/* const categoryNames = {
+  1: "Barriles",
+  2: "Cantidad de Accesorios",
+}; */
 
 function ListaProductos() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -24,11 +29,9 @@ function ListaProductos() {
     cantidadEntrada: 0,
     cantidad: 0,
     fechaEntrada: "",
-    fechaVencimiento: "",
     CategoriaId: 0,
     ProveedorId: 0,
   });
-
   useEffect(() => {
     const loadProducts = async () => {
       try {
@@ -37,7 +40,10 @@ function ListaProductos() {
           productsData.sort((a, b) => a.id - b.id);
           setProductos(productsData);
         } else {
-          console.error('Los datos de productos no son un array:', productsData);
+          console.error(
+            "Los datos de productos no son un array:",
+            productsData
+          );
         }
       } catch (error) {
         console.error("Error al obtener productos:", error);
@@ -46,8 +52,6 @@ function ListaProductos() {
 
     loadProducts();
   }, []);
-
-
 
   const handleSearchInputChange = (event) => {
     setSearchQuery(event.target.value);
@@ -80,29 +84,68 @@ function ListaProductos() {
       cantidadEntrada: 0,
       cantidad: 0,
       fechaEntrada: "",
-      fechaVencimiento: "",
       CategoriaId: 0,
       ProveedorId: 0,
     });
   };
 
-  const handleSaveEdit = async () => {
-    try {
-      await Products.updateProduct(editedProduct.id, editedProduct);
-      setEditMode(false);
-      const updatedProducts = await Products.getProducts();
-      if (Array.isArray(updatedProducts)) {
-        updatedProducts.sort((a, b) => a.id - b.id);
-        setProductos(updatedProducts);
-      } else {
-        console.error('Los datos de productos no son un array:', updatedProducts);
-      }
-      toast.success("Cambios guardados correctamente");
-    } catch (error) {
-      console.error(`Error al guardar la edición del producto:`, error);
-      toast.error("Error al guardar los cambios");
+const handleSaveEdit = async () => {
+  try {
+    const formData = new FormData(); // Creamos un objeto FormData para enviar los datos
+
+    // Agregamos cada campo del producto editado al objeto FormData
+    Object.entries(editedProduct).forEach(([key, value]) => {
+      formData.append(key, value);
+    });
+
+    await Products.updateProduct(editedProduct.id, formData); // Enviamos el objeto FormData al método de actualización
+
+    setEditMode(false);
+    const updatedProducts = await Products.getProducts();
+    if (Array.isArray(updatedProducts)) {
+      updatedProducts.sort((a, b) => a.id - b.id);
+      setProductos(updatedProducts);
+    } else {
+      console.error("Los datos de productos no son un array:", updatedProducts);
     }
-  };
+    toast.success("Cambios guardados correctamente");
+  } catch (error) {
+    console.error("Error al guardar la edición del producto:", error);
+    toast.error("Error al guardar los cambios");
+  }
+};
+
+
+  /*  const handleToggleAddProductForm = () => {
+    setShowAddProductForm(!showAddProductForm);
+    setNewProduct({
+      nombre: "",
+      descripcion: "",
+      precio: 0,
+      cantidadEntrada: 0,
+      cantidad: 0,
+      fechaEntrada: "",
+      fechaVencimiento: "",
+      CategoriaId: 0,
+      ProveedorId: 0,
+    });
+  }; */
+
+  /*   const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setNewProduct({ ...newProduct, [name]: value });
+  }; */
+
+  /*  const handleSaveNewProduct = async () => {
+    try {
+      await handleAggProduct(newProduct);
+      setShowAddProductForm(false);
+      toast.success("Producto agregado correctamente");
+    } catch (error) {
+      console.error("Error al agregar producto:", error);
+      toast.error("Error al agregar el producto");
+    }
+  }; */
 
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
@@ -135,7 +178,6 @@ function ListaProductos() {
     saveAs(data, "productos.xlsx");
   };
 
-
   return (
     <>
       <MenuLateral />
@@ -154,15 +196,130 @@ function ListaProductos() {
           </button>
         </div>
 
-        <div className="buttons-agg-producto">
+        <div className="buttons-agg">
           <button
-            className="Agregar-producto" /* onClick={handleToggleAddUserForm} */
+            className="Agregar-producto"
+            /* onClick={handleToggleAddProductForm} */
           >
             <Link to="/agregarProducto">
               <FaPlus />
             </Link>
           </button>
         </div>
+
+        {/* {showAddProductForm && (
+          <div className="add-product-form">
+            <h3>Agregar Producto</h3>
+            <form>
+              <label className="campos-form-product">Nombre:</label>
+              <input
+                className="inputs-form-product"
+                type="text"
+                id="nombre"
+                name="nombre"
+                value={newProduct.nombre}
+                onChange={handleInputChange}
+              />
+
+              <label className="campos-form-product">Descripción:</label>
+              <input
+                className="inputs-form-product"
+                type="text"
+                id="descripcion"
+                name="descripcion"
+                value={newProduct.descripcion}
+                onChange={handleInputChange}
+              />
+
+              <label className="campos-form-product">Precio:</label>
+              <input
+                className="inputs-form-product"
+                type="number" // Cambiado a tipo number
+                id="precio"
+                name="precio"
+                value={newProduct.precio}
+                onChange={handleInputChange}
+              />
+
+              <label className="campos-form-product">Cantidad Entrada:</label>
+              <input
+                className="inputs-form-product"
+                type="number" // Cambiado a tipo number
+                id="cantidadEntrada"
+                name="cantidadEntrada"
+                value={newProduct.cantidadEntrada}
+                onChange={handleInputChange}
+              />
+
+              <label className="campos-form-product">Cantidad:</label>
+              <input
+                className="inputs-form-product"
+                type="number" // Cambiado a tipo number
+                id="cantidad"
+                name="cantidad"
+                value={newProduct.cantidad}
+                onChange={handleInputChange}
+              />
+
+              <label className="campos-form-product">Fecha Entrada:</label>
+              <input
+                className="inputs-form-product"
+                type="date" // Cambiado a tipo date
+                id="fechaEntrada"
+                name="fechaEntrada"
+                value={newProduct.fechaEntrada}
+                onChange={handleInputChange}
+              />
+
+              <label className="campos-form-product">Fecha Vencimiento:</label>
+              <input
+                className="inputs-form-product"
+                type="date" // Cambiado a tipo date
+                id="fechaVencimiento"
+                name="fechaVencimiento"
+                value={newProduct.fechaVencimiento}
+                onChange={handleInputChange}
+              />
+
+              <label className="campos-form-product">Categoría ID:</label>
+              <input
+                className="inputs-form-product"
+                type="number" // Cambiado a tipo number
+                id="CategoriaId"
+                name="CategoriaId"
+                value={newProduct.CategoriaId}
+                onChange={handleInputChange}
+              />
+
+              <label className="campos-form-product">Proveedor ID:</label>
+              <input
+                className="inputs-form-product"
+                type="number" // Cambiado a tipo number
+                id="ProveedorId"
+                name="ProveedorId"
+                value={newProduct.ProveedorId}
+                onChange={handleInputChange}
+              />
+
+              <div className="container-button-form-product">
+                <button
+                  type="button"
+                  className="button-agg-product-guardar"
+                  onClick={handleSaveNewProduct}
+                >
+                  Guardar
+                </button>
+                <button
+                  type="button"
+                  className="button-agg-product-cancelar"
+                  onClick={handleToggleAddProductForm}
+                >
+                  Cancelar
+                </button>
+              </div>
+            </form>
+          </div>
+        )} */}
 
         <table className="table-productos">
           <thead>
@@ -189,7 +346,7 @@ function ListaProductos() {
                 Fecha Entrada
               </th>
               <th scope="col" className="header-product-table">
-                Fecha Vencimiento
+                Imagen
               </th>
               <th scope="col" className="header-product-table">
                 Categoría
@@ -215,12 +372,22 @@ function ListaProductos() {
                 <td>{product.cantidad}</td>
                 <td>{new Date(product.fechaEntrada).toLocaleDateString()}</td>
                 <td>
-                  {new Date(product.fechaVencimiento).toLocaleDateString()}
+                  <img
+                    src={MOSTRAR_FILE(product.image)}
+                    alt={product.nombre}
+                    width="100"
+                    height="100 "
+                  />
                 </td>
                 <td>{product.CategoriaId}</td>
                 <td>{product.ProveedorId}</td>
                 <td>
                   <div className="buttons-products">
+                    {/*                     <button className="button-producto-especifico">
+                      <Link to={`/productoEspecifico/${product.id}`}>
+                        <FaEye />
+                      </Link>
+                    </button> */}
                     {!editMode && (
                       <>
                         <button
@@ -245,198 +412,162 @@ function ListaProductos() {
         </table>
 
         {editMode && (
-          <div className="form-container">
-            <form className="form-producto" id="formulario">
-              <h3>Editar Producto</h3>
+          <div className="edit-product-form">
+            <h3>Editar Producto</h3>
+            <form onSubmit={handleSaveEdit}>
+              <label htmlFor="nombre" className="campos-form-edit-product">
+                Nombre:
+              </label>
+              <input
+                className="inputs-form-edit-product"
+                type="text"
+                id="nombre"
+                name="nombre"
+                value={editedProduct.nombre}
+                onChange={(e) =>
+                  setEditedProduct({ ...editedProduct, nombre: e.target.value })
+                }
+              />
 
-              <div className="form-row">
-                <div className="producto-group col ">
-                  <label className="form-label-usuario">
-                    <span className="form-label-text">Id</span>
-                  </label>
-                  <input
-                    className="form-control-producto"
-                    type="text"
-                    id="id"
-                    name="id"
-                  />
-                </div>
-                <div className="producto-group col ">
-                  <label className="form-label-usuario">
-                    <span className="form-label-text">Nombre</span>
-                  </label>
-                  <input
-                    className="form-control-producto"
-                    type="text"
-                    id="nombre"
-                    name="nombre"
-                    value={editedProduct.nombre}
-                    onChange={(e) =>
-                      setEditedProduct({
-                        ...editedProduct,
-                        nombre: e.target.value,
-                      })
-                    }
-                  />
-                </div>
-              </div>
+              <label htmlFor="descripcion" className="campos-form-edit-product">
+                Descripción:
+              </label>
+              <input
+                className="inputs-form-edit-product"
+                type="text"
+                id="descripcion"
+                name="descripcion"
+                value={editedProduct.descripcion}
+                onChange={(e) =>
+                  setEditedProduct({
+                    ...editedProduct,
+                    descripcion: e.target.value,
+                  })
+                }
+              />
 
-              <div className="form-row">
-                <div className="producto-group col ">
-                  <label className="form-label-usuario">
-                    <span className="form-label-text">Descripción</span>
-                  </label>
-                  <input
-                    className="form-control-producto"
-                    type="text"
-                    id="descripcion"
-                    name="descripcion"
-                    value={editedProduct.descripcion}
-                    onChange={(e) =>
-                      setEditedProduct({
-                        ...editedProduct,
-                        descripcion: e.target.value,
-                      })
-                    }
-                  />
-                </div>
-                <div className="producto-group col ">
-                  <label className="form-label-usuario">
-                    <span className="form-label-text">Precio</span>
-                  </label>
-                  <input
-                    className="form-control-producto"
-                    type="number" // Cambiado a tipo number
-                    id="precio"
-                    name="precio"
-                    value={editedProduct.precio}
-                    onChange={(e) =>
-                      setEditedProduct({
-                        ...editedProduct,
-                        precio: e.target.value,
-                      })
-                    }
-                  />
-                </div>
-              </div>
+              <label htmlFor="precio" className="campos-form-edit-product">
+                Precio:
+              </label>
+              <input
+                className="inputs-form-edit-product"
+                type="number" // Cambiado a tipo number
+                id="precio"
+                name="precio"
+                value={editedProduct.precio}
+                onChange={(e) =>
+                  setEditedProduct({ ...editedProduct, precio: e.target.value })
+                }
+              />
 
-              <div className="form-row">
-                <div className="producto-group col ">
-                  <label className="form-label-usuario">
-                    <span className="form-label-text">Cantidad De Entrada</span>
-                  </label>
-                  <input
-                    className="form-control-producto"
-                    type="number" // Cambiado a tipo number
-                    id="cantidadEntrada"
-                    name="cantidadEntrada"
-                    value={editedProduct.cantidadEntrada}
-                    onChange={(e) =>
-                      setEditedProduct({
-                        ...editedProduct,
-                        cantidadEntrada: e.target.value,
-                      })
-                    }
-                  />
-                </div>
-                <div className="producto-group col ">
-                  <label className="form-label-usuario">
-                    <span className="form-label-text">Cantidad</span>
-                  </label>
+              <label
+                htmlFor="cantidadEntrada"
+                className="campos-form-edit-product"
+              >
+                Cantidad Entrada:
+              </label>
+              <input
+                className="inputs-form-edit-product"
+                type="number" // Cambiado a tipo number
+                id="cantidadEntrada"
+                name="cantidadEntrada"
+                value={editedProduct.cantidadEntrada}
+                onChange={(e) =>
+                  setEditedProduct({
+                    ...editedProduct,
+                    cantidadEntrada: e.target.value,
+                  })
+                }
+              />
 
-                  <input
-                    className="form-control-producto"
-                    type="number" // Cambiado a tipo number
-                    id="cantidad"
-                    name="cantidad"
-                    value={editedProduct.cantidad}
-                    onChange={(e) =>
-                      setEditedProduct({
-                        ...editedProduct,
-                        cantidad: e.target.value,
-                      })
-                    }
-                  />
-                </div>
-              </div>
+              <label htmlFor="cantidad" className="campos-form-edit-product">
+                Cantidad:
+              </label>
+              <input
+                className="inputs-form-edit-product"
+                type="number" // Cambiado a tipo number
+                id="cantidad"
+                name="cantidad"
+                value={editedProduct.cantidad}
+                onChange={(e) =>
+                  setEditedProduct({
+                    ...editedProduct,
+                    cantidad: e.target.value,
+                  })
+                }
+              />
 
-              <div className="form-row">
-                <div className="producto-group col ">
-                  <label className="form-label-usuario">
-                    <span className="form-label-text">Fecha de Entrada</span>
-                  </label>
-                  <input
-                    className="form-control-producto"
-                    type="date" // Cambiado a tipo date
-                    id="fechaEntrada"
-                    name="fechaEntrada"
-                    value={editedProduct.fechaEntrada}
-                    onChange={(e) =>
-                      setEditedProduct({
-                        ...editedProduct,
-                        fechaEntrada: e.target.value,
-                      })
-                    }
-                  />
-                </div>
-                <div className="producto-group col ">
-                  <label className="form-label-usuario">
-                    <span className="form-label-text">Categoría</span>
-                  </label>
-                  <input
-                    className="form-control-producto"
-                    type="number" // Cambiado a tipo number
-                    id="CategoriaId"
-                    name="CategoriaId"
-                    value={editedProduct.CategoriaId}
-                    onChange={(e) =>
-                      setEditedProduct({
-                        ...editedProduct,
-                        CategoriaId: e.target.value,
-                      })
-                    }
-                  />
-                </div>
-              </div>
-              <div className="form-row">
-                <div className="producto-group col ">
-                  <label className="form-label-usuario">
-                    <span className="form-label-text">Proveedor</span>
-                  </label>
-                  <input
-                    className="form-control-producto"
-                    type="number" // Cambiado a tipo number
-                    id="ProveedorId"
-                    name="ProveedorId"
-                    value={editedProduct.ProveedorId}
-                    onChange={(e) =>
-                      setEditedProduct({
-                        ...editedProduct,
-                        ProveedorId: e.target.value,
-                      })
-                    }
-                  />
-                </div>
-                <div className="producto-group col">
-                  <label className="form-label-usuario">
-                    <span className="form-label-text">Imagen</span>
-                  </label>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    name="imagen"
-                    required
-                    className="form-control-producto"
-                  />
-                </div>
-              </div>
+              <label
+                htmlFor="fechaEntrada"
+                className="campos-form-edit-product"
+              >
+                Fecha Entrada:
+              </label>
+              <input
+                className="inputs-form-edit-product"
+                type="date" // Cambiado a tipo date
+                id="fechaEntrada"
+                name="fechaEntrada"
+                value={editedProduct.fechaEntrada}
+                onChange={(e) =>
+                  setEditedProduct({
+                    ...editedProduct,
+                    fechaEntrada: e.target.value,
+                  })
+                }
+              />
+              <label htmlFor="imagen" className="campos-form-edit-product">
+                Imagen:
+              </label>
+              <input
+                type="file"
+                id="imagen"
+                name="imagen"
+                accept="image/*"
+                onChange={(e) =>
+                  setEditedProduct({
+                    ...editedProduct,
+                    imagen: e.target.files[0], // Guardamos el archivo seleccionado en el estado
+                  })
+                }
+              />
+
+              <label htmlFor="CategoriaId" className="campos-form-edit-product">
+                Categoría ID:
+              </label>
+              <input
+                className="inputs-form-edit-product"
+                type="number" // Cambiado a tipo number
+                id="CategoriaId"
+                name="CategoriaId"
+                value={editedProduct.CategoriaId}
+                onChange={(e) =>
+                  setEditedProduct({
+                    ...editedProduct,
+                    CategoriaId: e.target.value,
+                  })
+                }
+              />
+
+              <label htmlFor="ProveedorId" className="campos-form-edit-product">
+                Proveedor ID:
+              </label>
+              <input
+                className="inputs-form-edit-product"
+                type="number" // Cambiado a tipo number
+                id="ProveedorId"
+                name="ProveedorId"
+                value={editedProduct.ProveedorId}
+                onChange={(e) =>
+                  setEditedProduct({
+                    ...editedProduct,
+                    ProveedorId: e.target.value,
+                  })
+                }
+              />
 
               <div className="container-button-form-edit-product">
-                <button
-                  type="button"
-                  className="button-guardar-edit-product"
-                  onClick={handleSaveEdit}
-                >
+                <button type="submit" className="button-guardar-edit-product">
                   Guardar
                 </button>
                 <button
